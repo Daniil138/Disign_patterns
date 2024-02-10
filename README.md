@@ -1,3 +1,9 @@
 # Disign_patterns
 * Hello World
-* help
+
+* Мои задачи 
+|numbers|patters|done|
+|-------|-------|----|
+|1    | Научиться пользоваться git| Yes|
+
+'''print("Hello world")'''
