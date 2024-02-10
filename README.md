@@ -7,4 +7,4 @@
 |-------|-------|----|
 |1    | Научиться пользоваться git| Yes|
 
-'''print("Hello world")'''
+```print("Hello world")```
