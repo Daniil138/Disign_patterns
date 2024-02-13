@@ -27,10 +27,10 @@ class test_settings(unittest.TestCase):
         manage = settings_manager()
         
         # Действие
-       
+        item.first_name("a  ")
         
         # Проверка
-        assert  getattr(item, self.__first_name, False)
+        assert item.first_name == "a"
         
     def test_check_manager_convert(self):
         # Подготовка
