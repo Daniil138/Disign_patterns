@@ -1,5 +1,5 @@
-from settings import settings
-from settings_manager import  settings_manager
+from Src.settings import settings
+from Src.settings_manager import  settings_manager
 import unittest
 
 
@@ -27,7 +27,7 @@ class test_settings(unittest.TestCase):
         manage = settings_manager()
         
         # Действие
-        item.first_name("a  ")
+        item.first_name("a  git ")
         
         # Проверка
         assert item.first_name == "a"
