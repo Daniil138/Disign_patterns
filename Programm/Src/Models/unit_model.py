@@ -78,6 +78,50 @@ class unit_model(reference):
         base = unit_model.create_gram()
         item = unit_model("киллограмм", base, 1000)
         return item
+    
+    @staticmethod    
+    def create_mililitr():
+        """
+            Создать единицу измерения милилитр
+
+        Returns:
+            _type_: _description_
+        """
+        item = unit_model("милилитр", None, 1)
+        return item    
+    
+    @staticmethod
+    def create_litr():
+        """
+            Создать единицу литр
+        Returns:
+            _type_: _description_
+        """
+        base = unit_model.create_mililitr()
+        item = unit_model("литр", base, 1000)
+        return item
+    
+    @staticmethod    
+    def create_shtuka():
+        """
+            Создать единицу измерения штука
+
+        Returns:
+            _type_: _description_
+        """
+        item = unit_model("штука", None, 1)
+        return item    
+    
+    @staticmethod
+    def create_desytok():
+        """
+            Создать единицу измерения десяток 
+        Returns:
+            _type_: _description_
+        """
+        base = unit_model.create_shtuka()
+        item = unit_model("десяток", base, 10)
+        return item
         
         
         

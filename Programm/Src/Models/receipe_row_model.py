@@ -19,7 +19,7 @@ class receipe_model(reference):
         self.__size = _size
         self.__unit = _unit
         
-        super().__init__( f"{_nomenclature.name} , {_unit.name} ")
+        super().__init__( f"{_nomenclature.name} , {_unit.name} \n")
     
     @property
     def nomenclature(self):

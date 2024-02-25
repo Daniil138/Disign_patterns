@@ -51,3 +51,11 @@ class storage:
         """
         return "unit"
     
+    @staticmethod
+    def recipe_key():
+        """
+            Ключ для хранения рецепта
+        Returns:
+            _type_: _description_
+        """
+        return "recipe"
