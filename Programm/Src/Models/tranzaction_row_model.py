@@ -17,22 +17,29 @@ class tranzaction_row_model(reference):
     __period: datetime
 
     
-    def __init__(self, _nomenclature: nomenclature_model, _operation: bool, _unit: unit_model, _period: datetime):
+    def __init__(self, _nomenclature: nomenclature_model, _stock: str, _operation: bool, _unit: unit_model, _period: datetime):
         """
 
         Args:
-            _nomenclature (nomenclature_model): Объект номенклатура
-            _size (int): Размер части
-            _unit (unit_model): Объект единица измерения
+            _nomenclature (nomenclature_model): _description_
+            _stock (str): _description_
+            _operation (bool): _description_
+            _unit (unit_model): _description_
+            _period (datetime): _description_
         """
         exception_proxy.validate(_nomenclature, reference)
         exception_proxy.validate(_unit, reference)
+        exception_proxy.validate(_stock, str)
+        exception_proxy.validate(_operation, bool)
+    
          
         self.__nomenclature = _nomenclature
         self.__operation = _operation
         self.__unit = _unit
+        self.__period = _period
+        self.__stock = _stock
         
-        super().__init__( f"{_nomenclature.name} , {_unit.name} ")
+        super().__init__( f"{_nomenclature.name}, {_stock}, {_operation}, {_unit.name}, {_period} ")
     
     @property  
     def nomenclature(self):
@@ -47,7 +54,7 @@ class tranzaction_row_model(reference):
     @property
     def quantity(self):
         """
-            Размер
+            Колличество
 
         Returns:
             _type_: _description_
@@ -69,5 +76,36 @@ class tranzaction_row_model(reference):
             _type_: _description_
         """
         return self.__unit    
+    
+    @property    
+    def operation(self):
+        """
+           Операция 
+
+        Returns:
+            _type_: _description_
+        """
+        return self.__operation   
+    
+    @property    
+    def stock(self):
+        """
+           Операция 
+
+        Returns:
+            _type_: _description_
+        """
+        return self.__stock
+
+    @property    
+    def period(self):
+        """
+           Операция 
+
+        Returns:
+            _type_: _description_
+        """
+        return self.__period
+        
         
     
