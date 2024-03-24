@@ -1,6 +1,7 @@
 from Src.exceptions import argument_exception
 from Src.errors import error_proxy
 from datetime import datetime
+from Src.Models.nomenclature_model import nomenclature_model
 
 
 #
@@ -15,7 +16,7 @@ class storage_prototype(error_proxy):
         
         self.__data = data
 
-    def filter( self,start_period: datetime, stop_period: datetime  ):
+    def filter_by_date( self,start_period: datetime, stop_period: datetime  ):
         """
             Отфильтровать по периоду
         Args:
@@ -43,6 +44,33 @@ class storage_prototype(error_proxy):
                 
         return   storage_prototype( result )
     
+    def filter_by_nomen(self, nomenclatura: nomenclature_model ):
+        """
+            Отфильтровать по номенклатуре 
+        Args:
+            data (list): список складских транзакций
+            nomenclatura (nomenclature_model): номенклатура дл фильтрациии
+
+        Returns:
+            storage_prototype: _description_
+        """
+        if len(self.__data) <= 0:
+            self.error = "Некорректно переданы параметры!"
+            
+        if nomenclatura._id == None:
+            self.error = "Некорректная номенклатура!"
+            
+         
+        if not self.is_empty:
+            return self.__data
+        
+        result = []
+        for item in self.__data:
+            if item.nomenclature._id == nomenclatura._id:
+                result.append(item)
+                
+        return   storage_prototype( result )
+
     @property
     def data(self):
         return self.__data         
