@@ -1,4 +1,5 @@
 from flask import Flask, request
+import uuid
 from Src.settings_manager import settings_manager
 from Src.Storage.storage import storage
 from Src.errors import error_proxy
@@ -15,6 +16,8 @@ app.config['JSON_AS_ASCII'] = False
 options = settings_manager() 
 start = start_factory(options.settings)
 start.create()
+nomenclatures = start.storage.data[  storage.nomenclature_key()  ]
+print(nomenclatures[0].id)
 
 
 @app.route("/api/report/<storage_key>", methods = ["GET"])
@@ -57,6 +60,28 @@ def get_turns():
     data = storage_service( source_data   ).create_turns( start_date, stop_date )      
     result = storage_service.create_response( data, app )
     return result
+
+@app.route("/api/storage/<nomenclature_id>/turns")
+def get_turns_nomen(nomenclature_id: uuid ):
+    if nomenclature_id == None:
+        return error_proxy.create_error_response("Необходимо передать параметр номенклатуры")
+    
+    nomenclatures = start.storage.data[  storage.nomenclature_key()  ]
+    print(nomenclatures)
+    data = []
+    source_data = start.storage.data[  storage.storage_transaction_key()   ] 
+    print(source_data)
+    for i in nomenclatures:
+        print(i.id, nomenclature_id)
+        if i.id == nomenclature_id:
+             
+             data = storage_service( source_data   ).create_turns_nomen(nomenclature_id)     
+    print(data)
+    result = storage_service.create_response( data, app )
+
+    return result
+
+            
       
 
 if __name__ == "__main__":

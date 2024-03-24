@@ -2,6 +2,7 @@ from Src.Logics.convert_factory import convert_factory
 from Src.Logics.process_factory import process_factory
 from Src.Logics.storage_prototype import storage_prototype
 from Src.exceptions import argument_exception, exception_proxy
+from Src.Models.nomenclature_model import nomenclature_model
 from datetime import datetime
 import json
 
@@ -34,7 +35,36 @@ class storage_service:
         
         # Фильтруем      
         prototype = storage_prototype(  self.__data )  
-        filter = prototype.filter( start_period, stop_period)
+        filter = prototype.filter_by_date( start_period, stop_period)
+            
+        # Подобрать процессинг    
+        key_turn = process_factory.turn_key()
+        processing = process_factory().create( key_turn  )
+    
+        # Обороты
+        turns =  processing().process( filter.data )
+        return turns
+
+    def create_turns_nomen(self, nomenclatura: nomenclature_model ) -> dict:
+        """
+            получить обороты по номенклатуре 
+        Args:
+            nomenclatura (nomenclature_model): _description_
+
+        Raises:
+            argument_exception: _description_
+
+        Returns:
+            dict: _description_
+        """
+        exception_proxy.validate(nomenclatura, nomenclature_model)
+        
+        if nomenclatura._id == None:
+            raise argument_exception("Некорректно переданы параметры!")
+        
+        # Фильтруем      
+        prototype = storage_prototype(  self.__data )  
+        filter = prototype.filter_by_nomen( nomenclatura)
             
         # Подобрать процессинг    
         key_turn = process_factory.turn_key()
