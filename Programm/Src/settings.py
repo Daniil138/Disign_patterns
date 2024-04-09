@@ -1,5 +1,5 @@
 from Src.exceptions import exception_proxy
-
+import datetime as dt
 #
 # Класс для описания настроек
 #
@@ -8,6 +8,7 @@ class settings():
     _short_name = ""
     _first_start = True
     _mode = "csv"
+    _block_period: dt.datetime
     
     
     @property
@@ -65,4 +66,24 @@ class settings():
         exception_proxy.validate(value, str)
         
         self._mode = value
+    
+    @property
+    def block_period(self):
+        """
+            ПОлучение периода блокировкии 
+        Returns:
+            _type_: _description_
+        """
+        return self._block_period
+
+
+    @block_period.setter
+    def block_period(self, value: str):
+        value = dt.datetime.strptime(value, "%Y-%m-%d")
+        exception_proxy.validate(value, dt.datetime)
+
+        self._block_period = value
+
+    
+    
     

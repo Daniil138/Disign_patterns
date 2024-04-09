@@ -2,6 +2,7 @@ from Src.settings_manager import settings_manager
 import unittest
 
 
+
 #
 # Набор автотестов для проверки работы модуmeля настроек
 #
@@ -53,6 +54,20 @@ class settings_test(unittest.TestCase):
         
         # Проверки
         assert manager.error.is_empty == False
+    #
+    # Проверить сохранение данных
+    #
+    def test_check_save(self):
+        # Подготовка
+        options = settings_manager()
+        options.open("settings.json")
+        options.settings._block_period = "2024-01-5"
+
+        # Действие
+        result = options.save()
+
+        # Проверки
+        assert result == True
         
         
             
