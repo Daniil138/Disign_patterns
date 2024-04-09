@@ -46,7 +46,7 @@ class service_nomenclatures():
 
         return False
     
-    def ger_nomenclatures(self):
+    def get_nomenclatures(self):
         """Получение списка ноиенклатур
         Returns:
             _type_: _description_

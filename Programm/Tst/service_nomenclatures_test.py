@@ -37,7 +37,7 @@ class service_nomenclatures_test(unittest.TestCase):
         service = service_nomenclatures(start.storage.data)
 
         #Действие
-        data = service.ger_nomenclatures()
+        data = service.get_nomenclatures()
 
         #Проверка
         assert len(data)!=0

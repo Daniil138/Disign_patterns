@@ -8,6 +8,7 @@ from datetime import datetime
 from Src.Logics.storage_service import storage_service
 from Src.Models.nomenclature_model import nomenclature_model
 from Src.Logics.convert_factory import convert_factory
+from service_nomenclatures import service_nomenclatures
 
 
 app = Flask(__name__)
@@ -17,6 +18,8 @@ app.config['JSON_AS_ASCII'] = False
 options = settings_manager() 
 start = start_factory(options.settings)
 start.create()
+service_by_nomen=service_nomenclatures(start.storage.data)
+
 
 
 @app.route("/api/report/<storage_key>", methods = ["GET"])
@@ -115,6 +118,23 @@ def chenge_block_period():
     options = settings_manager()
     data = factory.serialize( options.settings )
     return data
+
+@app.route("/get_nomrnclatura/<nomenclature_id", methods = ["GET"])
+def get_nomenclature(nomenclature_id):
+    nomenclature_data =  start.storage.data[  storage.nomenclature_key()   ]  
+    nomenclatures =  nomenclature_model.create_dictionary( nomenclature_data )
+    ids = [item.id for item in nomenclatures.values()]
+    if nomenclature_id not in ids:
+        return error_proxy.create_error_response(app, "Некорректно передан код номенклатуры!")
+    factory = convert_factory()
+    return factory.serialize( service_by_nomen.get_nomenclatura(nomenclature_id))
+
+@app.route("/get_nomrnclatures", methods = ["GET"])
+def get_nomenclature():
+    factory = convert_factory()
+    return factory.serialize( service_by_nomen.get_nomenclatures())
+
+
     
     
     
