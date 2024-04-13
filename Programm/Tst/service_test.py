@@ -166,6 +166,64 @@ class service_test(unittest.TestCase):
           
         # Проверка (транзакций должно быть больше)   
         assert start_len_transaction < stop_len_transaction   
+
+
+    #
+    #Проверка созранения и пересчета номенклатуры по стоп период
+    #
+    def test_check_create_blocked_turns(self):
+        # Подготовка
+        manager = settings_manager()
+        start = start_factory(manager.settings)
+        start.create()
+        key = storage.storage_transaction_key()
+        data = start.storage.data[ key ]
+        service = storage_service(data)
+        manager.open("settings.json")
+        storager = storage()
+        blocked_period = manager.settings._block_period
+        blocked_period = datetime.strptime("2024-01-30", "%Y-%m-%d")
+        
+        if len(data) == 0:
+            raise operation_exception("Набор данных пуст!")
+        
+        
+        
+        # Действие
+        service.create_blocked_turns(blocked_period)
+        
+        # Проверки
+        assert len(storager.data[ storage.turn_key() ]) > 0
+
+
+    def test_check_create_blocked_to_stop_period(self):
+        # Подготовка
+        manager = settings_manager()
+        start = start_factory(manager.settings)
+        start.create()
+        key = storage.storage_transaction_key()
+        data = start.storage.data[ key ]
+        service = storage_service(data)
+        manager.open("settings.json")
+        storager = storage()
+        blocked_period = manager.settings._block_period
+        blocked_period = datetime.strptime("2024-01-30", "%Y-%m-%d")
+        start_period = datetime.strptime("2024-10-30", "%Y-%m-%d")
+        
+        
+        if len(data) == 0:
+            raise operation_exception("Набор данных пуст!")
+        
+        
+        
+        # Действие
+        service.create_blocked_turns(blocked_period)
+        result = service.create_turns(start_period)
+
+        
+        # Проверки
+        assert len(result) > 0
+        
         
             
         

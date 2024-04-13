@@ -7,6 +7,7 @@ from Src.Models.receipe_model import receipe_model
 from Src.Models.storage_model import storage_model
 from Src.Models.receipe_row_model import receipe_row_model
 from Src.Storage.storage import storage
+from Src.settings_manager import settings_manager
 
 from datetime import datetime
 import json
@@ -42,8 +43,28 @@ class storage_service:
             
         
     # Набор основных методов    
+
+
+    def __make_turns_by_blocked_stop_period(self, data_real_turn: list):
+        storage_data = storage()
+        data_turn_blocked = storage_data.data[ storage.turn_key() ]
+        data = {}
+        for item in data_turn_blocked:
+            key = (item.nomenclature.id, item.storage.address)
+            data[key] = item
+        for item in data_real_turn:
+            key = (item.nomenclature.id, item.storage.address)
+            if key in data.keys():
+                data[key].value+=item.value
+            else:
+                data[key] = item
         
-    def create_turns(self, start_period: datetime, stop_period:datetime ) -> list:
+        return data.items()
+
+
+
+        
+    def create_turns(self, start_period: datetime, stop_period:datetime = None ) -> list:
         """
             Получить обороты за период
         Args:
@@ -53,6 +74,29 @@ class storage_service:
         Returns:
             list: обороты за период
         """
+
+        if stop_period == None:
+            options = settings_manager()
+            options.open("settings.json")
+            blocked_period = options.settings.block_period
+            stop_period = start_period
+            start_period =  options.settings.block_period
+            
+            exception_proxy.validate(start_period, datetime)
+            exception_proxy.validate(stop_period, datetime)
+            
+            if start_period > stop_period:
+                raise argument_exception("Некорректно переданы параметры!")
+            
+            # Фильтруем      
+            prototype = storage_prototype(  self.__data )  
+            filter = prototype.filter_by_period( start_period, stop_period)
+            
+            data = self.__processing( filter. data )
+            self.create_blocked_turns(blocked_period)
+            result = self.__make_turns_by_blocked_stop_period(data)
+            return result
+
         exception_proxy.validate(start_period, datetime)
         exception_proxy.validate(stop_period, datetime)
         
@@ -167,6 +211,33 @@ class storage_service:
         data = storage().data[ key ]
         for transaction in transactions:
             data.append ( transaction )
+
+    def create_blocked_turns(self,  block_period:datetime ):
+        """
+            Сделать обороты до периода блокировки 
+        Args:
+            start_period (datetime): Начало
+            stop_period (datetime): Окончание
+
+        Returns:
+            list: обороты за период
+        """
+        start_period = datetime.strptime("1900-01-01", "%Y-%m-%d")
+        exception_proxy.validate(block_period, datetime)
+        
+        if start_period > block_period:
+            raise argument_exception("Некорректно переданы параметры!")
+        
+        # Фильтруем      
+        prototype = storage_prototype(  self.__data )  
+        filter = prototype.filter_by_period( start_period, block_period)
+        data = storage()
+        process = self.__processing( filter. data )
+        if len(process) < 0:
+            raise operation_exception("Некорректно почситана процесс")
+
+        
+        data.data[ data.turn_key() ] = process
     
     # Набор основных методов        
     

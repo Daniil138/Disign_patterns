@@ -106,12 +106,15 @@ def chenge_block_period():
         options = settings_manager()
         options.open("settings.json")
         options.settings._block_period = value
+        storage = storage_service()
+        storage.create_blocked_turns()
         try:
             options.save()
         except:
             return error_proxy.create_error_response(app, "Не удалось сохранить настройки ")    
         factory = convert_factory()
         data = factory.serialize( options.settings )
+        
         return data
         
     factory = convert_factory()
@@ -119,7 +122,7 @@ def chenge_block_period():
     data = factory.serialize( options.settings )
     return data
 
-@app.route("/get_nomrnclatura/<nomenclature_id", methods = ["GET"])
+@app.route("/get_nomrnclatura/<nomenclature_id>", methods = ["GET"])
 def get_nomenclature(nomenclature_id):
     nomenclature_data =  start.storage.data[  storage.nomenclature_key()   ]  
     nomenclatures =  nomenclature_model.create_dictionary( nomenclature_data )
@@ -130,7 +133,7 @@ def get_nomenclature(nomenclature_id):
     return factory.serialize( service_by_nomen.get_nomenclatura(nomenclature_id))
 
 @app.route("/get_nomrnclatures", methods = ["GET"])
-def get_nomenclature():
+def get_nomenclatures():
     factory = convert_factory()
     return factory.serialize( service_by_nomen.get_nomenclatures())
 

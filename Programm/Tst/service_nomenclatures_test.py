@@ -87,7 +87,7 @@ class service_nomenclatures_test(unittest.TestCase):
         result = service.delete_nomenclatures(nomenclatura)
 
         #Провеерка 
-        assert len(service.ger_nomenclatures())<lens
+        assert len(service.get_nomenclatures())<lens
         assert result
 
 

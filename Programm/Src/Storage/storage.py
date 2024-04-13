@@ -85,7 +85,15 @@ class storage():
             
         return False    
 
- 
+    @staticmethod 
+    def turn_key():
+        """
+            Клбюч для оборотов до блок периода 
+        Returns:
+            _type_: _description_
+        """
+        return "turn_key"
+
     @staticmethod
     def nomenclature_key():
         """
