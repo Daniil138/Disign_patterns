@@ -114,6 +114,7 @@ def chenge_block_period():
             return error_proxy.create_error_response(app, "Не удалось сохранить настройки ")    
         factory = convert_factory()
         data = factory.serialize( options.settings )
+        storage.create_blocked_turns()
         
         return data
         

@@ -169,7 +169,7 @@ class service_test(unittest.TestCase):
 
 
     #
-    #Проверка созранения и пересчета номенклатуры по стоп период
+    #Проверка созранения и пересчета оборота номенклатуры по стоп период
     #
     def test_check_create_blocked_turns(self):
         # Подготовка
@@ -195,7 +195,9 @@ class service_test(unittest.TestCase):
         # Проверки
         assert len(storager.data[ storage.turn_key() ]) > 0
 
-
+    #
+    #Проверка для пересчета оборотов с блокпериода по старт период с выгрузкой из сторадже
+    #
     def test_check_create_blocked_to_stop_period(self):
         # Подготовка
         manager = settings_manager()
@@ -207,7 +209,6 @@ class service_test(unittest.TestCase):
         manager.open("settings.json")
         storager = storage()
         blocked_period = manager.settings._block_period
-        blocked_period = datetime.strptime("2024-01-30", "%Y-%m-%d")
         start_period = datetime.strptime("2024-10-30", "%Y-%m-%d")
         
         
@@ -219,6 +220,40 @@ class service_test(unittest.TestCase):
         # Действие
         service.create_blocked_turns(blocked_period)
         result = service.create_turns(start_period)
+
+        
+        # Проверки
+        assert len(result) > 0
+
+
+
+    
+    #
+    #Проверка для пересчета оборотов с блокпериода по старт период с выгрузкой из сторадже по одной номенклатуре 
+    #
+    def test_check_create_blocked_to_stop_period_nomenclature(self):
+        # Подготовка
+        manager = settings_manager()
+        start = start_factory(manager.settings)
+        start.create()
+        key = storage.storage_transaction_key()
+        data = start.storage.data[ key ]
+        service = storage_service(data)
+        manager.open("settings.json")
+        storager = storage()
+        blocked_period = manager.settings._block_period
+        start_period = datetime.strptime("2025-10-30", "%Y-%m-%d")
+        nomenclature = storager.data[ storage.nomenclature_key() ][0]
+        
+        
+        if len(data) == 0:
+            raise operation_exception("Набор данных пуст!")
+        
+        
+        
+        # Действие
+        service.create_blocked_turns(blocked_period)
+        result = service.create_turns_by_nomenclature(start_period, nomenclature)
 
         
         # Проверки

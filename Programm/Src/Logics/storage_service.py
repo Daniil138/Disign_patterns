@@ -14,7 +14,11 @@ import json
 
 class storage_service:
     __data = []
-    
+    options = settings_manager()
+    options.open("settings.json")
+    _block_period = options._settings.block_period
+
+
     def __init__(self, data: list) -> None:
         if len(data) == 0:
             raise argument_exception("Некорректно переданы параметры!")
@@ -46,20 +50,65 @@ class storage_service:
 
 
     def __make_turns_by_blocked_stop_period(self, data_real_turn: list):
+        """Метод для добавления оборотов из сохраненных к отсортированным 
+
+        Args:
+            data_real_turn (list): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        exception_proxy.validate(data_real_turn, list)
+
         storage_data = storage()
         data_turn_blocked = storage_data.data[ storage.turn_key() ]
         data = {}
+
+
         for item in data_turn_blocked:
-            key = (item.nomenclature.id, item.storage.address)
+            key = (item.nomenclature.id, item.storage.id)
             data[key] = item
+            #Снчала из созраненных оборотов добавляются все 
+
+        #Затем если такие обороты есть в полученных, то мы складываем их значения, если нет то просто добавляем 
         for item in data_real_turn:
-            key = (item.nomenclature.id, item.storage.address)
+            key = (item.nomenclature.id, item.storage.id)
             if key in data.keys():
                 data[key].value+=item.value
             else:
                 data[key] = item
         
         return data.items()
+    
+    def __make_turns_by_blocked_stop_period_nomenclature(self, data_real_turn: list):
+        """Метод для добавления оборотов из сохраненных к отсортированным по одной номенклатуре 
+
+        Args:
+            data_real_turn (list): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        exception_proxy.validate(data_real_turn, list)
+
+        storage_data = storage()
+        data_turn_blocked = storage_data.data[ storage.turn_key() ]
+        data = []
+        key0 = (data_real_turn[0].nomenclature.id,  data_real_turn[0].storage.id)
+
+
+        for item in data_turn_blocked:
+            key = (item.nomenclature.id, item.storage.id)
+            if key0 == key:
+                item.value += data_real_turn[0].value
+                data.append(item)
+
+        if len(data) == 0:
+            return data_real_turn
+
+
+        
+        return data
 
 
 
@@ -76,11 +125,8 @@ class storage_service:
         """
 
         if stop_period == None:
-            options = settings_manager()
-            options.open("settings.json")
-            blocked_period = options.settings.block_period
             stop_period = start_period
-            start_period =  options.settings.block_period
+            start_period =  self._block_period
             
             exception_proxy.validate(start_period, datetime)
             exception_proxy.validate(stop_period, datetime)
@@ -93,7 +139,7 @@ class storage_service:
             filter = prototype.filter_by_period( start_period, stop_period)
             
             data = self.__processing( filter. data )
-            self.create_blocked_turns(blocked_period)
+            self.create_blocked_turns(self._block_period)
             result = self.__make_turns_by_blocked_stop_period(data)
             return result
 
@@ -110,7 +156,7 @@ class storage_service:
         return self.__processing( filter. data )
             
         
-    def create_turns_by_nomenclature(self, start_period: datetime, stop_period: datetime, nomenclature: nomenclature_model) -> list:
+    def create_turns_by_nomenclature(self, start_period: datetime, *args) -> list:
         """
             Получить обороты за период по конкретной номенклатуры
         Args:
@@ -121,6 +167,43 @@ class storage_service:
         Returns:
             list: Обороты
         """
+        if len(args)==0:
+            raise argument_exception("Не передана номенклатура")
+        
+        if len(args)==1:
+            stop_period = start_period
+            start_period = self._block_period
+            nomenclature = args[0]
+
+            exception_proxy.validate(start_period, datetime)
+            exception_proxy.validate(stop_period, datetime)
+            exception_proxy.validate(nomenclature, nomenclature_model)
+
+            if start_period > stop_period:
+                raise argument_exception("Некорректно переданы параметры!")
+            
+
+            # Фильтруем      
+            prototype = storage_prototype(  self.__data )  
+            filter = prototype.filter_by_period( start_period, stop_period)
+            filter = filter.filter_by_nomenclature( nomenclature )
+
+            if not filter.is_empty:
+                raise operation_exception(f"Невозможно сформировать обороты по указанным данных: {filter.error}")
+            
+            data = self.__processing( filter. data )
+            self.create_blocked_turns(self._block_period)
+            result = self.__make_turns_by_blocked_stop_period_nomenclature(data)
+
+            return result
+            
+
+
+
+        if len(args)==2:
+            stop_period = args[0]
+            nomenclature = args[1]
+
         exception_proxy.validate(start_period, datetime)
         exception_proxy.validate(stop_period, datetime)
         exception_proxy.validate(nomenclature, nomenclature_model)
