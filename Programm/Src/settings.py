@@ -1,5 +1,6 @@
-from Src.exceptions import exception_proxy
-import datetime as dt
+from Src.exceptions import exception_proxy, argument_exception
+from datetime import datetime
+
 #
 # Класс для описания настроек
 #
@@ -8,7 +9,7 @@ class settings():
     _short_name = ""
     _first_start = True
     _mode = "csv"
-    _block_period: dt.datetime
+    _block_period = datetime.now
     
     
     @property
@@ -67,23 +68,25 @@ class settings():
         
         self._mode = value
     
+
     @property
     def block_period(self):
         """
-            ПОлучение периода блокировкии 
-        Returns:
-            _type_: _description_
+            Дата блокировки периода
         """
         return self._block_period
-
-
+    
     @block_period.setter
-    def block_period(self, value: str):
-        value = dt.datetime.strptime(value, "%Y-%m-%d")
-        exception_proxy.validate(value, dt.datetime)
+    def block_period(self, value):
+        if isinstance(value, datetime):
+            self._block_period = value
+            return
 
-        self._block_period = value
-
-    
-    
-    
+        if isinstance(value, str):
+            try:
+               self._block_period = datetime.strptime(value, "%Y-%m-%d")    
+            except Exception as ex:
+                raise argument_exception(f"Невозможно сконвертировать сроку в дату! {ex}")
+        else:
+            raise argument_exception("Некорректно переданы параметры!")
+            

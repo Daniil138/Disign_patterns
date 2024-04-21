@@ -1,7 +1,7 @@
 import json
 import os
 
-from Src.exceptions import operation_exception
+from Src.exceptions import operation_exception, exception_proxy
 from Src.Logics.convert_factory import convert_factory
 from Src.reference import reference
 
@@ -85,15 +85,33 @@ class storage():
             
         return False    
 
-    @staticmethod 
-    def turn_key():
+ 
+    def save_blocked_turns(self, turns:list):
         """
-            Клбюч для оборотов до блок периода 
+            Сохранить новый список заблокированных оборотов
+        """        
+        exception_proxy.validate(turns, list)
+        if len(turns) > 0:
+            self.__data[ storage.blocked_turns_key() ] = turns
+            
+            
+    @staticmethod        
+    def  save_blocked_turns(turns:list):
+        """
+            Сохранить новый список заблокированных оборотов (статический вызов)
+        """       
+        object = storage()
+        object.save_blocked_turns(turns) 
+        
+    @staticmethod
+    def blocked_turns_key():
+        """
+            Ключ для хранения заблокированных оборотов
         Returns:
             _type_: _description_
         """
-        return "turn_key"
-
+        return "storage_row_turn_model"    
+ 
     @staticmethod
     def nomenclature_key():
         """
@@ -158,3 +176,21 @@ class storage():
                 keys.append(method())
         return keys
     
+
+    def Ok( app):
+        """"
+            Сформировать данные для сервера
+        """
+        if app is None:
+            raise operation_exception("Некорректно переданы параметры!")
+
+        json_text = json.dumps({"status" : "ok"}, sort_keys = True, indent = 4,  ensure_ascii = False)  
+
+        # Подготовить ответ    
+        result = app.response_class(
+            response =   f"{json_text}",
+            status = 200,
+            mimetype = "application/json; charset=utf-8"
+        )
+        
+        return result
