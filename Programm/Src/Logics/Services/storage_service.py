@@ -5,7 +5,8 @@ from Src.Models.nomenclature_model import nomenclature_model
 from Src.Models.receipe_model import receipe_model
 from Src.Storage.storage import storage
 from Src.Logics.Services.service import service
-
+from Src.Models.event_type import event_type
+from Src.Logics.Services.storage_observer import storage_observer
 
 from datetime import datetime
 
@@ -13,6 +14,10 @@ from datetime import datetime
 # Сервис для работы со складскими операциями
 #
 class storage_service(service):
+
+    def __init__(self, data: list) -> None:
+        super().__init__(data)
+
     
     def __build_turns(self, data: list) -> list:
         """
@@ -196,4 +201,10 @@ class storage_service(service):
         for transaction in transactions:
             data.append ( transaction )
     
-  
+    def handle_event(self, handle_type: str):
+        """ Обработать события"""
+
+        super().handle_event(handle_type)
+
+        if handle_type == event_type.changed_block_period:
+            self.__build_blocked_turns()

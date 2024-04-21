@@ -1,6 +1,7 @@
 from Src.Logics.Services.service import service
 from Src.exceptions import exception_proxy, operation_exception
 from Src.reference import reference
+from Src.Logics.Services.storage_observer import storage_observer
 
 #
 # Сервис для выполнения CRUD операций
@@ -62,7 +63,10 @@ class reference_service(service):
         return found
     
 
-    
+    def handle_event( self, event_type: str ):
+        """ Обработать события"""
+
+        super().handle_event(event_type)
 
 
 

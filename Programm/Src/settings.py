@@ -1,5 +1,7 @@
 from Src.exceptions import exception_proxy, argument_exception
 from datetime import datetime
+from Src.Logics.Services.storage_observer import storage_observer
+from Src.Models.event_type import event_type
 
 #
 # Класс для описания настроек
@@ -82,6 +84,8 @@ class settings():
             self._block_period = value
             return
 
+        legacy_period = self._block_period
+
         if isinstance(value, str):
             try:
                self._block_period = datetime.strptime(value, "%Y-%m-%d")    
@@ -89,4 +93,7 @@ class settings():
                 raise argument_exception(f"Невозможно сконвертировать сроку в дату! {ex}")
         else:
             raise argument_exception("Некорректно переданы параметры!")
+        
+        if legacy_period == self._block_period:
+            storage_observer.raise_event(  event_type.changed_block_period()  )
             
