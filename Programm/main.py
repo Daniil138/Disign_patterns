@@ -5,10 +5,11 @@ from Src.errors import error_proxy
 from Src.Logics.report_factory import report_factory
 from Src.Logics.start_factory import start_factory
 from datetime import datetime
-from Src.Logics.storage_service import storage_service
+from Src.Logics.Services.storage_service import storage_service
 from Src.Models.nomenclature_model import nomenclature_model
-from Src.Logics.convert_factory import convert_factory
-from service_nomenclatures import service_nomenclatures
+from Src.Logics.Services.service import service
+from Src.Logics.Services.reference_service import reference_service
+
 
 
 app = Flask(__name__)
@@ -18,16 +19,14 @@ app.config['JSON_AS_ASCII'] = False
 options = settings_manager() 
 start = start_factory(options.settings)
 start.create()
-service_by_nomen=service_nomenclatures(start.storage.data)
 
 
+# Отчетность
 
 @app.route("/api/report/<storage_key>", methods = ["GET"])
 def get_report(storage_key: str):
     """
         Сформировать отчет
-    Args:
-        storage_key (str): Ключ - тип данных: номенклатура, группы и т.д.
     """
     
     keys = storage.storage_keys( start.storage )
@@ -45,8 +44,16 @@ def get_report(storage_key: str):
     except Exception as ex:
         return error_proxy.create_error_response(app, f"Ошибка при формировании отчета {ex}", 500)
 
+# Отчетность
+
+# Складские операции
+
 @app.route("/api/storage/turns", methods = ["GET"] )
 def get_turns():
+    """
+        Получить обороты за период
+    """
+
     # Получить параметры
     args = request.args
     if "start_period" not in args.keys():
@@ -60,25 +67,28 @@ def get_turns():
           
     source_data = start.storage.data[  storage.storage_transaction_key()   ]      
     data = storage_service( source_data   ).create_turns( start_date, stop_date )      
-    result = storage_service.create_response( data, app )
+    result = service.create_response( app, data )
     return result
       
 @app.route("/api/storage/<nomenclature_id>/turns", methods = ["GET"] )
 def get_turns_nomenclature(nomenclature_id):
+    """
+        Получить обороты за период и по коду номенклатукры
+    """
     
     # Получить параметры
     args = request.args
     if "start_period" not in args.keys():
-        return error_proxy.create_error_response(app, "Необходимо передать параметры: start_period, stop_period!")
+        return error_proxy.create_error_response(app, "Необходимо передать параметры: start_period, stop_period!", 400)
 
     if "stop_period" not in args.keys():
-        return error_proxy.create_error_response(app, "Необходимо передать параметры: start_period, stop_period!")
+        return error_proxy.create_error_response(app, "Необходимо передать параметры: start_period, stop_period!", 400)
 
     try:
         start_date = datetime.strptime(args["start_period"], "%Y-%m-%d")
         stop_date = datetime.strptime(args["stop_period"], "%Y-%m-%d")
     except:
-        return error_proxy.create_error_response(app, "Некорректно перпеданы параметры: start_period, stop_period")    
+        return error_proxy.create_error_response(app, "Некорректно перпеданы параметры: start_period, stop_period", 400)    
 
     transactions_data = start.storage.data[  storage.storage_transaction_key()   ]   
     nomenclature_data =  start.storage.data[  storage.nomenclature_key()   ]   
@@ -86,58 +96,99 @@ def get_turns_nomenclature(nomenclature_id):
     nomenclatures =  nomenclature_model.create_dictionary( nomenclature_data )
     ids = [item.id for item in nomenclatures.values()]
     if nomenclature_id not in ids:
-        return error_proxy.create_error_response(app, "Некорректно передан код номенклатуры!")
+        return error_proxy.create_error_response(app, "Некорректно передан код номенклатуры!", 400)
     
     nomenclature = nomenclatures[nomenclature_id]
       
     data = storage_service( transactions_data  ).create_turns_by_nomenclature( start_date, stop_date, nomenclature )      
-    result = storage_service.create_response( data, app )
-    return result   
+    result = service.create_response( data, app )
+    return result      
+
+# Складские операции
+
+# Номерклатура
+@app.route("/api/nomenclature", methods = ["PUT"])
+def add_nomenclature():
+    """
+        Добавить номерклатуру
+    """
+    try:
+        data = request.get_json()
+        item = nomenclature_model().load(data)
+        source_data = start.storage.data[  storage.nomenclature_key() ]
+        result = reference_service( source_data ).add( item )
+        return service.create_response( {"result": result} )
+    except Exception as ex:
+        return error_proxy.create_error_response(app,   f"Ошибка при добавлении данных!\n {ex}")
 
 
-@app.route("/change_block_period", methods = ["GET"] )
-def chenge_block_period():
-    # Получить параметры
-    args = request.args
-    if "block_period"  in args.keys():
-        value = args["block_period"]
-        
+@app.route("/api/nomenclature", methods = ["DELETE"])
+def delete_nomenclature():
+    """
+        Удалить номенклатуру
+    """
+    try:
+        data = request.get_json()
+        item = nomenclature_model().load(data)
+        source_data = start.storage.data[  storage.nomenclature_key() ]
+        result = reference_service( source_data ).delete( item )
+        return service.create_response( {"result": result} )
+    except Exception as ex:
+        return error_proxy.create_error_response(app,   f"Ошибка при удалении данных!\n {ex}")
+
+
+@app.route("/api/nomenclature", methods = ["PATH"])
+def change_nomenclature():
+    """
+        Изменить номенклатуру
+    """
+    try:
+        data = request.get_json()
+        item = nomenclature_model().load(data)
+        source_data = start.storage.data[  storage.nomenclature_key() ]
+        result = reference_service( source_data ).change( item )
+        return service.create_response( {"result": result} )
+    except Exception as ex:
+        return error_proxy.create_error_response(app,   f"Ошибка при изменении данных!\n {ex}")
     
-        options = settings_manager()
-        options.open("settings.json")
-        options.settings._block_period = value
+@app.route("/api/nomenclature", methods = ["GET"])
+def get_nomenclature():
+    """
+        Получить список номенклатуры
+    """
+    args = request.args
+    if "id" not in args.keys():
+        # Вывод всех элементов
+        source_data = start.storage.data[  storage.nomenclature_key() ]
+        result = reference_service(source_data ).get()
+        return service.create_response(app, result)
+    else:
+        # Вывод конкретного элемента
         try:
+            source_data = start.storage.data[  storage.nomenclature_key() ]
+            result = reference_service(source_data ).get_item(args["id"])
+            return service.create_response(app, result)
+        except Exception as ex:
+            return error_proxy.create_error_response(app,   f"Ошибка при получении данных!\n {ex}")
+
+
+# Номенклатура
+
+@app.route("/api/block_period", methods=["GET"])
+def get_block_period():
+    args = request.args
+    if "period" in args.keys():
+
+        try:
+            period = datetime.strptime(args["period"], "%Y-%m-%d")
+            options.settings.block_period = period
             options.save()
         except:
-            return error_proxy.create_error_response(app, "Не удалось сохранить настройки ")    
-        factory = convert_factory()
-        data = factory.serialize( options.settings )
-        return data
-        
-    factory = convert_factory()
-    options = settings_manager()
-    data = factory.serialize( options.settings )
-    return data
+           return error_proxy.create_error_response(app, "Некорректно перпеданы параметры: period", 400)    
 
-@app.route("/get_nomrnclatura/<nomenclature_id", methods = ["GET"])
-def get_nomenclature(nomenclature_id):
-    nomenclature_data =  start.storage.data[  storage.nomenclature_key()   ]  
-    nomenclatures =  nomenclature_model.create_dictionary( nomenclature_data )
-    ids = [item.id for item in nomenclatures.values()]
-    if nomenclature_id not in ids:
-        return error_proxy.create_error_response(app, "Некорректно передан код номенклатуры!")
-    factory = convert_factory()
-    return factory.serialize( service_by_nomen.get_nomenclatura(nomenclature_id))
+    result = [options.settings.block_period.strftime('%Y-%m-%d')]
+    return service.create_response(app, result)
 
-@app.route("/get_nomrnclatures", methods = ["GET"])
-def get_nomenclature():
-    factory = convert_factory()
-    return factory.serialize( service_by_nomen.get_nomenclatures())
-
-
-    
-    
-    
 
 if __name__ == "__main__":
     app.run(debug = True)
