@@ -29,6 +29,7 @@ class reference_service(service):
         if len(found) == 0:
             return False
         
+        
         self.data.remove(found[0])
         return True
 

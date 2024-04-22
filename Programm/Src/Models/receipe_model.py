@@ -162,6 +162,26 @@ class receipe_model(reference):
         # Загрузим инструкции
         self._instructions = source["instructions"]
         return self
+    
+    def delete_nomenclatura(self, nomenclatura: nomenclature_model):
+        """Удаление номенклатуры из рецепта 
+        Args:
+            nomenclatura (nomenclature_model): _description_
+
+        Returns:
+            _type_: _description_
+        """
+
+        exception_proxy.validate(nomenclatura, nomenclature_model)
+
+
+        for key, item in self._rows.items():
+            if nomenclatura.id == item.nomenclature.id:
+                del self._rows[key]
+                return True
+        return False 
+
+
             
     
     
