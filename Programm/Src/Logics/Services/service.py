@@ -3,9 +3,8 @@ from Src.Logics.convert_factory import convert_factory
 from Src.settings import settings
 from Src.settings_manager import settings_manager
 from Src.Models.event_type import event_type
-from abc import ABC
 
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod
 import json
 
 #
@@ -42,15 +41,18 @@ class service(ABC):
             settings: _description_
         """
         return self.__settings
-    
-    @abstractmethod
-    def handle_event(self, event_type: str):
-        """ Обработать события"""
 
-        exception_proxy.validate(event_type, str)
+    @abstractclassmethod
+    def handle_event(self, handle_type: str ):
+        """
+            Обработать событие
+        Args:
+            handle_type (str): Ключ
+        """
+        exception_proxy.validate(handle_type, str )
+        pass
 
     # Общие методы для формирования ответа для Web
-
 
     def create_response(self, app, data:list = None):
         """
