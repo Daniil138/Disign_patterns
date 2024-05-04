@@ -159,6 +159,15 @@ class storage():
         """
         return "receipe_model"
     
+    @staticmethod
+    def log_key():
+        """
+            Логирование
+        Returns:
+            _type_: _description_
+        """
+        return "logging"
+    
     # Код взят: https://github.com/UpTechCompany/GitExample/blob/6665bc70c4933da12f07c0a0d7a4fc638c157c40/storage/storage.py#L30
     
     @staticmethod

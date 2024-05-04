@@ -6,6 +6,8 @@ from Src.Logics.storage_observer import storage_observer
 from Src.Models.nomenclature_model import nomenclature_model
 from Src.Storage.storage import storage
 
+import datetime
+
 #
 # Пост процессинг для наблюдения за сервисами
 #
@@ -54,9 +56,10 @@ class post_processing_service(service):
             handle_type (str): _description_
         """
         super().handle_event(handle_type)
-        
+        storager = storage()
         if handle_type == event_type.deleted_nomenclature():
             self.__observe_deleted_nomenclature()
+            storager.data[ storage.log_key() ].append([handle_type, self.__nomenclature.name, datetime.datetime.now()])
         
         
             

@@ -16,6 +16,7 @@ from datetime import datetime
 # Сервис для работы со складскими операциями
 #
 class storage_service(service):
+    __name_recipt = None
     
     def __init__(self, data: list) -> None:
         super().__init__(data)
@@ -39,6 +40,7 @@ class storage_service(service):
     
         # Обороты
         turns =  processing().process( data )
+        
         return turns
             
     def __build_blocked_turns(self):
@@ -167,7 +169,9 @@ class storage_service(service):
                 for transaction in filter.data:
                     transactions.append( transaction )
                     
-            filter.data = self.data        
+            filter.data = self.data  
+        storage_observer.raise_event(  event_type.create_turns_by_receipt()  )   
+        self.__name = receipt.name     
             
         return self.__build_turns( transactions )     
     
@@ -200,6 +204,9 @@ class storage_service(service):
         data = storage().data[ key ]
         for transaction in transactions:
             data.append ( transaction )
+        storage_observer.raise_event(  event_type.build_debits_by_receipt() ) 
+        self.__name = receipt.name    
+         
     
     # Набор основных методов   
         
@@ -210,9 +217,14 @@ class storage_service(service):
             handle_type (str): _description_
         """
         super().handle_event(handle_type)
-        
+        storager = storage()
         if handle_type == event_type.changed_block_period():
             self.__build_blocked_turns()
-        
+
+        if handle_type == event_type.create_turns_by_receipt():
+            storager.data[ storage.log_key() ].append([handle_type, self.__name, datetime.now()])
+        if handle_type == event_type.build_debits_by_receipt():
+            storager.data[ storage.log_key() ].append([handle_type, self.__name, datetime.now()])
+
     
   

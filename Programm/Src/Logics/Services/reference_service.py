@@ -4,11 +4,15 @@ from Src.reference import reference
 from Src.Logics.storage_observer import storage_observer
 from Src.Models.event_type import event_type
 from Src.Logics.Services.post_processing_service import post_processing_service
+from Src.Storage.storage import storage
+
+import datetime
 
 #
 # Сервис для выполнения CRUD операций
 #
 class reference_service(service):
+    __item = None
 
     def __init__(self, data: list) -> None:
         super().__init__(data)
@@ -26,6 +30,7 @@ class reference_service(service):
             return False
         
         self.data.append(item)
+        storage_observer.raise_event(  event_type.add_item()  )
         return True
     
     def delete(self, item:reference) -> bool:
@@ -42,6 +47,7 @@ class reference_service(service):
         observer_item = storage_observer.get( storage_observer.post_processing_service_key() )
         observer_item.nomenclature = item
         storage_observer.raise_event(  event_type.deleted_nomenclature()  )    
+        
 
 	# Удалить элемент
         self.data.remove(item)
@@ -58,6 +64,7 @@ class reference_service(service):
         
         self.delete(found[0])
         self.add(item)
+        storage_observer.raise_event(  event_type.change_item()  )  
         return True
     
     def get(self) -> list:
@@ -84,6 +91,12 @@ class reference_service(service):
             handle_type (str): _description_
         """
         super().handle_event(handle_type)
+        storager = storage()
+        if handle_type == event_type.change_item():
+            storager.data[ storage.log_key() ].append([handle_type, self.__item.name, datetime.datetime.now()])
+
+        if handle_type == event_type.add_item():
+            storager.data[ storage.log_key() ].append([handle_type, self.__item.name, datetime.datetime.now()])
 
 
 
