@@ -29,6 +29,12 @@ class log_service(service):
     def item(self) -> error_proxy:
         return self.__item
     
+    def get_log_record(self, data):
+        factory = convert_factory()
+        data = factory.serialize( data )
+        json_text = json.dumps(data, sort_keys = True, indent = 4, ensure_ascii = False)  
+        return json_text
+    
     @item.setter
     def item(self, value: error_proxy):
         exception_proxy.validate(value, error_proxy)
@@ -42,6 +48,7 @@ class log_service(service):
         period =  datetime.now().strftime('%Y-%m-%d') 
         file_path = os.path.split(__file__)
         log_file = "%s/%s" % (file_path[0], f"{self.__log_file}_{period}.log")
+        
         try:
             if os.path.exists(log_file):
                 os.remove(log_file)
@@ -68,6 +75,7 @@ class log_service(service):
         # Добавить запись в лог
         if handle_type == event_type.write_log() and self.__item is not None:
             self.__data.append(self.__item)
+            print(self.get_log_record(self.__item))
             
         # Записать лог в файл и очистить    
         if handle_type == event_type.save_log():

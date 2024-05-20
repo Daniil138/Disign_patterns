@@ -136,6 +136,7 @@ class error_proxy:
         """
             Сформировать сообщение для записи лога
         """
+        print(message)
         observer_item = storage_observer.get( storage_observer .log_service_key() )
         if observer_item is not None:
             item = error_proxy()
