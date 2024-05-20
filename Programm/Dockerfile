@@ -3,9 +3,9 @@ WORKDIR /app
 EXPOSE 5000
 
 # Готовим окружение
-RUN pip3 install --upgrade pip
-RUN pip3 install -U Flask
-RUN pip3 install -U flask-restplus
+RUN pip install --upgrade pip
+RUN pip install -U Flask
+RUN pip install -U flask-restplus
 
 # Копируем исходный код
 COPY Src /app/Src
