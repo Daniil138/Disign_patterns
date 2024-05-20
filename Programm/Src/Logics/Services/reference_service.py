@@ -1,22 +1,19 @@
 from Src.Logics.Services.service import service
-from Src.exceptions import exception_proxy, operation_exception
+from Src.exceptions import exception_proxy, operation_exception, error_proxy
 from Src.reference import reference
 from Src.Logics.storage_observer import storage_observer
 from Src.Models.event_type import event_type
 from Src.Logics.Services.post_processing_service import post_processing_service
-from Src.Storage.storage import storage
-
-import datetime
+from Src.Logics.storage_prototype import storage_prototype
 
 #
 # Сервис для выполнения CRUD операций
 #
 class reference_service(service):
-    __item = None
 
     def __init__(self, data: list) -> None:
         super().__init__(data)
-        storage_observer.observers.append(self)
+        storage_observer.append(self)
         post_processing_service( self.data )
         
         
@@ -25,12 +22,13 @@ class reference_service(service):
             Добавить новый элемент
         """
         exception_proxy.validate(item, reference)
-        found = list(filter(lambda x: x.id == item.id , self.data))     
-        if len(found) > 0:
+        found = storage_prototype(self.data).filter_by_id(item.id)
+        if len(found.data) > 0:
             return False
         
         self.data.append(item)
-        storage_observer.raise_event(  event_type.add_item()  )
+        error_proxy.write_log(f"Добавлен новый объект. Модель {type(item).__name__}", "DEBUG") 
+
         return True
     
     def delete(self, item:reference) -> bool:
@@ -38,19 +36,20 @@ class reference_service(service):
             Удалить элемент
         """
         exception_proxy.validate(item, reference)
-        found = list(filter(lambda x: x.id == item.id , self.data))     
-        if len(found) == 0:
+        found = storage_prototype(self.data).filter_by_id(item.id)
+        if len(found.data) == 0:
             return False
-        item = found[0]
+        item = found.data[0]
        
         # Найти нужный наблюдатель и вызвать событие        
         observer_item = storage_observer.get( storage_observer.post_processing_service_key() )
-        observer_item.nomenclature = item
-        storage_observer.raise_event(  event_type.deleted_nomenclature()  )    
-        
-
-	# Удалить элемент
+        if observer_item is not None:
+            observer_item.item = item
+            storage_observer.raise_event(  event_type.deleted_nomenclature()  )    
+            
+	    # Удалить элемент
         self.data.remove(item)
+        error_proxy.write_log(f"Удален объект. Модель {type(item).__name__}", "DEBUG") 
         return True
 
     def change(self, item:reference) -> bool:
@@ -58,13 +57,14 @@ class reference_service(service):
             Изменить элемент
         """
         exception_proxy.validate(item, reference)
-        found = list(filter(lambda x: x.id == item.id , self.data))     
-        if len(found) == 0:
+        found = storage_prototype(self.data).filter_by_id(item.id)
+        if len(found.data) == 0:
             return False
         
-        self.delete(found[0])
+        self.delete(found.data[0])
         self.add(item)
-        storage_observer.raise_event(  event_type.change_item()  )  
+
+        error_proxy.write_log(f"Изменен объект. Модель {type(item).__name__}", "DEBUG") 
         return True
     
     def get(self) -> list:
@@ -78,8 +78,8 @@ class reference_service(service):
             Вернуть элемент
         """
         exception_proxy.validate(id, str)
-        found = list(filter(lambda x: x.id == id , self.data))     
-        if len(found) == 0:
+        found = storage_prototype(self.data).filter_by_id(id)
+        if len(found.data) == 0:
             raise operation_exception(f"Не найден элемент с кодом {id}!")
         
         return found
@@ -91,12 +91,6 @@ class reference_service(service):
             handle_type (str): _description_
         """
         super().handle_event(handle_type)
-        storager = storage()
-        if handle_type == event_type.change_item():
-            storager.data[ storage.log_key() ].append([handle_type, self.__item.name, datetime.datetime.now()])
-
-        if handle_type == event_type.add_item():
-            storager.data[ storage.log_key() ].append([handle_type, self.__item.name, datetime.datetime.now()])
 
 
 
